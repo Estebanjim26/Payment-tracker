@@ -264,7 +264,10 @@ export default function App() {
             <div>· Payment Plan: <strong>{fmt(paymentAmount)}</strong> <strong>{freqLabel(freqWeeks)}</strong></div>
           </div>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+            <button onClick={() => { setTotalDebt(""); setDownPayment(""); setDownPaymentDate(""); setPaymentAmount(""); setFreqWeeks(""); setFirstPaymentDate(""); setMonthlyBill(""); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 18px", borderRadius: 7, border: "1px solid #fca5a5", background: "#fff", color: "#dc2626", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+              🗑️ Reset All
+            </button>
             <button onClick={handleCopy} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 18px", borderRadius: 7, border: "1px solid #d0d0d0", background: copied ? "#dcfce7" : "#fff", color: copied ? "#16a34a" : "#444", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "background 0.2s, color 0.2s" }}>
               {copied ? "✓ Copied!" : "📋 Copy Schedule"}
             </button>
