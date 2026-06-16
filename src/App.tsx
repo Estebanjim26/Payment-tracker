@@ -51,6 +51,7 @@ const baseInput: React.CSSProperties = {
   border: "1px solid #e0e0e0", borderRadius: 6, padding: "7px 10px",
   fontSize: 13, width: "100%", outline: "none", color: "#222",
   background: "#f8f8f8", boxSizing: "border-box",
+  colorScheme: "light",
 };
 
 const prefixWrap: React.CSSProperties = {
@@ -229,7 +230,10 @@ export default function App() {
           </div></div>
 
         <div><label style={labelStyle}>Down Payment Date <InfoIcon tip={tooltips.downPaymentDate} /></label>
-          <input type="date" style={baseInput} value={downPaymentDate} onChange={e => setDownPaymentDate(e.target.value)} /></div>
+          <div style={{ position: "relative" }}>
+            <input type="date" style={{ ...baseInput, paddingRight: 36 }} value={downPaymentDate} onChange={e => setDownPaymentDate(e.target.value)} />
+            <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 16, pointerEvents: "none" }}>📅</span>
+          </div></div>
 
         <div><label style={labelStyle}>Payment Amount <InfoIcon tip={tooltips.paymentAmount} /></label>
           <div style={prefixWrap}><span style={prefixSpan}>$</span>
@@ -240,7 +244,10 @@ export default function App() {
           <input style={baseInput} placeholder="e.g. 2" value={freqWeeks} onChange={e => setFreqWeeks(e.target.value)} /></div>
 
         <div><label style={labelStyle}>First Payment Date <InfoIcon tip={tooltips.firstPaymentDate} /></label>
-          <input type="date" style={baseInput} value={firstPaymentDate} onChange={e => setFirstPaymentDate(e.target.value)} /></div>
+          <div style={{ position: "relative" }}>
+            <input type="date" style={{ ...baseInput, paddingRight: 36 }} value={firstPaymentDate} onChange={e => setFirstPaymentDate(e.target.value)} />
+            <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 16, pointerEvents: "none" }}>📅</span>
+          </div></div>
 
         <div><label style={labelStyle}>Monthly Bill <InfoIcon tip={tooltips.monthlyBill} /></label>
           <div style={prefixWrap}><span style={prefixSpan}>$</span>
