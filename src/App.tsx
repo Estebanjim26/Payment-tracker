@@ -213,11 +213,11 @@ export default function App() {
   };
 
   return (
-    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", maxWidth: 860, margin: "0 auto", padding: "24px 16px", color: "#222" }}>
+    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", maxWidth: 960, margin: "0 auto", padding: "40px 48px", color: "#222", minWidth: 700 }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>💳 Payment Schedule Tracker</h1>
       <p style={{ fontSize: 13, color: "#888", marginBottom: 24 }}>Fill in your details to generate a full payment schedule.</p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 14, marginBottom: 28, padding: 20, background: "#fafafa", border: "1px dashed #d0d0d0", borderRadius: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28, padding: 24, background: "#fafafa", border: "1px dashed #d0d0d0", borderRadius: 10 }}>
         <div><label style={labelStyle}>Total Debt <InfoIcon tip={tooltips.totalDebt} /></label>
           <div style={prefixWrap}><span style={prefixSpan}>$</span>
             <input style={noBorderInput} placeholder="e.g. 5000" value={totalDebt} onChange={e => setTotalDebt(e.target.value)} />
