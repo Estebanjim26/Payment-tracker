@@ -189,26 +189,70 @@ export default function App() {
   const remaining = Math.max(0, stripCommas(totalDebt) - (useDownPayment ? stripCommas(downPayment) : 0));
 
   const handleCopy = () => {
-    const summaryLines = [
-      `Total Debt: ${fmt(totalDebt)}`,
-      `Down Payment: ${fmt(downPayment)}`,
-      `Remaining Balance After Down Payment: ${fmt(remaining)}`,
-      `Payment Plan: ${fmt(paymentAmount)} ${freqLabel(freqWeeks)}`,
-      "",
-    ];
-    const header = `${pad("#", 4)} | ${pad("Date", 12)} | ${pad("Type", 8)} | ${pad("Payment", 10, true)} | ${pad("Balance", 12, true)}`;
-    const divider = "-".repeat(header.length);
-    const tableRows = schedule.map((r) => {
-      const num = r.isDP ? "—" : r.isFee ? "" : String(r.pmtNum);
-      return `${pad(num, 4)} | ${pad(fmtDate(r.date), 12)} | ${pad(r.type, 8)} | ${pad(fmt(r.payment), 10, true)} | ${pad(fmt(r.balance), 12, true)}`;
-    });
-    const footer = ["", `Total Payments: ${debtPayments.length}`, `Estimated Payoff Date: ${payoffRow ? fmtDate(payoffRow.date) : "—"}`];
-    const text = [...summaryLines, header, divider, ...tableRows, ...footer].join("\n");
-    navigator.clipboard.writeText(text)
+    const typeColors: Record<string, string> = { DP: "#6c63ff", Payment: "#333", Final: "#16a34a", Monthly: "#d97706" };
+    const typeBgColors: Record<string, string> = { DP: "#ede9fe", Payment: "#f3f4f6", Final: "#dcfce7", Monthly: "#fef3c7" };
+
+    const summaryHtml = `
+      <div style="font-family:Arial,sans-serif;font-size:14px;margin-bottom:16px;padding:14px 18px;background:#fafafa;border:1px dashed #bbb;border-radius:8px;line-height:2;">
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;">📋 Payment Plan Breakdown</div>
+        <div>· Total Debt: <strong>${fmt(totalDebt)}</strong></div>
+        ${useDownPayment ? `<div>· Down Payment: <strong>${fmt(downPayment)}</strong></div>` : ""}
+        ${useDownPayment ? `<div>· Remaining Balance After Down Payment: <strong>${fmt(remaining)}</strong></div>` : ""}
+        <div>· Payment Plan: <strong>${fmt(paymentAmount)} ${freqLabel(freqWeeks)}</strong></div>
+        ${parseFloat(monthlyBill) > 0 ? `<div>· Monthly Bill: <strong>${fmt(monthlyBill)}</strong> <span style="color:#d97706">(billed on the 1st business day of each month)</span></div>` : ""}
+      </div>`;
+
+    const tableHtml = `
+      <table style="font-family:Arial,sans-serif;font-size:13px;border-collapse:collapse;width:100%;max-width:700px;">
+        <thead>
+          <tr style="border-bottom:2px solid #222;">
+            <th style="padding:8px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#555;">#</th>
+            <th style="padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase;color:#555;">Date</th>
+            <th style="padding:8px 12px;text-align:center;font-size:11px;text-transform:uppercase;color:#555;">Type</th>
+            <th style="padding:8px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#555;">Payment</th>
+            <th style="padding:8px 12px;text-align:right;font-size:11px;text-transform:uppercase;color:#555;">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${schedule.map((r, i) => {
+            const dateKey = r.date.toDateString();
+            const firstIdx = schedule.findIndex(s => s.date.toDateString() === dateKey);
+            const uniqueDates = [...new Set(schedule.slice(0, firstIdx).map(s => s.date.toDateString()))];
+            const bg = uniqueDates.length % 2 === 0 ? "#ffffff" : "#f9fafb";
+            const num = r.isDP ? "—" : r.isFee ? "" : String(r.pmtNum);
+            const balColor = r.balance === 0 ? "#16a34a" : "#222";
+            const balWeight = r.balance === 0 ? "700" : "400";
+            return `<tr style="background:${bg};border-bottom:1px solid #f0f0f0;">
+              <td style="padding:7px 12px;text-align:center;color:#aaa;font-size:12px;">${num}</td>
+              <td style="padding:7px 12px;color:#444;">${fmtDate(r.date)}</td>
+              <td style="padding:7px 12px;text-align:center;">
+                <span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;color:${typeColors[r.type]};background:${typeBgColors[r.type]};">${r.type}</span>
+              </td>
+              <td style="padding:7px 12px;text-align:right;font-weight:${r.type === "Final" ? "700" : "400"};">${fmt(r.payment)}</td>
+              <td style="padding:7px 12px;text-align:right;color:${balColor};font-weight:${balWeight};">${fmt(r.balance)}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>`;
+
+    const footerHtml = `
+      <div style="font-family:Arial,sans-serif;margin-top:16px;padding:14px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;display:flex;gap:40px;">
+        <div><div style="font-size:11px;color:#666;text-transform:uppercase;">Total Payments</div><div style="font-size:18px;font-weight:700;color:#15803d;">${debtPayments.length}</div></div>
+        <div><div style="font-size:11px;color:#666;text-transform:uppercase;">Estimated Payoff Date</div><div style="font-size:18px;font-weight:700;color:#15803d;">${payoffRow ? fmtDate(payoffRow.date) : "—"}</div></div>
+      </div>`;
+
+    const html = summaryHtml + tableHtml + footerHtml;
+
+    const blob = new Blob([html], { type: "text/html" });
+    const plainBlob = new Blob([html.replace(/<[^>]+>/g, "")], { type: "text/plain" });
+    const item = new ClipboardItem({ "text/html": blob, "text/plain": plainBlob });
+
+    navigator.clipboard.write([item])
       .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })
       .catch(() => {
+        // fallback: copy html as text
         const ta = document.createElement("textarea");
-        ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+        ta.value = html; ta.style.position = "fixed"; ta.style.opacity = "0";
         document.body.appendChild(ta); ta.focus(); ta.select();
         document.execCommand("copy"); document.body.removeChild(ta);
         setCopied(true); setTimeout(() => setCopied(false), 2000);
