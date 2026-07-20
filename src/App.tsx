@@ -302,8 +302,14 @@ export default function App() {
                 </tr>
               </thead>
               <tbody>
-                {schedule.map((r, i) => (
-                  <tr key={i} style={{ background: i % 2 === 0 ? "#fff" : "#fafafa", borderBottom: "1px solid #f0f0f0" }}>
+                {schedule.map((r, i) => {
+                  // Group rows by date so same-date rows share the same background
+                  const dateKey = r.date.toDateString();
+                  const firstIndexOfDate = schedule.findIndex(s => s.date.toDateString() === dateKey);
+                  const groupIndex = schedule.slice(0, firstIndexOfDate).filter((s, idx) => schedule.findIndex(x => x.date.toDateString() === s.date.toDateString()) === idx).length;
+                  const rowBg = groupIndex % 2 === 0 ? "#fff" : "#fafafa";
+                  return (
+                  <tr key={i} style={{ background: rowBg, borderBottom: "1px solid #f0f0f0" }}>
                     <td style={{ padding: "7px 12px", textAlign: "center", color: "#aaa", fontSize: 12 }}>{r.isDP ? "—" : r.isFee ? "" : r.pmtNum}</td>
                     <td style={{ padding: "7px 12px", color: "#444" }}>{fmtDate(r.date)}</td>
                     <td style={{ padding: "7px 12px", textAlign: "center" }}>
@@ -312,7 +318,8 @@ export default function App() {
                     <td style={{ padding: "7px 12px", textAlign: "right", fontVariantNumeric: "tabular-nums", fontWeight: r.type === "Final" ? 700 : 400 }}>{fmt(r.payment)}</td>
                     <td style={{ padding: "7px 12px", textAlign: "right", fontVariantNumeric: "tabular-nums", color: r.balance === 0 ? "#16a34a" : "#222", fontWeight: r.balance === 0 ? 700 : 400 }}>{fmt(r.balance)}</td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
