@@ -101,6 +101,7 @@ interface Row {
 
 export default function App() {
   const [totalDebt, setTotalDebt] = useState("");
+  const [useDownPayment, setUseDownPayment] = useState(true);
   const [downPayment, setDownPayment] = useState("");
   const [downPaymentDate, setDownPaymentDate] = useState("");
   const [paymentAmount, setPaymentAmount] = useState("");
@@ -111,25 +112,29 @@ export default function App() {
 
   const schedule = useMemo((): Row[] => {
     const total = parseFloat(totalDebt) || 0;
-    const dp = parseFloat(downPayment) || 0;
-    const dpDate = parseDate(downPaymentDate);
+    const dp = useDownPayment ? (parseFloat(downPayment) || 0) : 0;
+    const dpDate = useDownPayment ? parseDate(downPaymentDate) : new Date(0);
     const pmt = parseFloat(paymentAmount) || 0;
     const firstPmt = parseDate(firstPaymentDate);
     const bill = parseFloat(monthlyBill) || 0;
     const isMonthlyFreq = freqWeeks === "monthly";
     const freqDays = isMonthlyFreq ? 0 : (parseInt(freqWeeks) || 1) * 7;
 
-    if (!total || !dpDate || !firstPmt || !pmt) return [];
+    if (!total || !firstPmt || !pmt) return [];
+    if (useDownPayment && !parseDate(downPaymentDate)) return [];
 
     const rows: Row[] = [];
     const balAfterDP = parseFloat(Math.max(0, total - dp).toFixed(2));
-    rows.push({ date: dpDate, type: "DP", payment: dp, balance: balAfterDP, isDP: true });
+    if (useDownPayment && dp > 0 && dpDate) {
+      rows.push({ date: dpDate, type: "DP", payment: dp, balance: balAfterDP, isDP: true });
+    }
 
     let bal = balAfterDP;
     let pmtDate = new Date(firstPmt);
     if (isMonthlyFreq) {
       pmtDate = new Date(firstPmt.getFullYear(), firstPmt.getMonth(), 1);
-      if (pmtDate <= dpDate) {
+      const refDate = (useDownPayment && dpDate) ? dpDate : new Date(0);
+      if (pmtDate <= refDate) {
         pmtDate = new Date(pmtDate.getFullYear(), pmtDate.getMonth() + 1, 1);
       }
     }
@@ -172,7 +177,7 @@ export default function App() {
 
   const debtPayments = schedule.filter((r) => r.type === "Payment" || r.type === "Final");
   const payoffRow = schedule.find((r) => r.type === "Final");
-  const remaining = Math.max(0, (parseFloat(totalDebt) || 0) - (parseFloat(downPayment) || 0));
+  const remaining = Math.max(0, (parseFloat(totalDebt) || 0) - (useDownPayment ? (parseFloat(downPayment) || 0) : 0));
 
   const handleCopy = () => {
     const summaryLines = [
@@ -202,7 +207,7 @@ export default function App() {
   };
 
   const handleReset = () => {
-    setTotalDebt(""); setDownPayment(""); setDownPaymentDate("");
+    setTotalDebt(""); setUseDownPayment(true); setDownPayment(""); setDownPaymentDate("");
     setPaymentAmount(""); setFreqWeeks(""); setFirstPaymentDate(""); setMonthlyBill("");
   };
 
@@ -217,16 +222,32 @@ export default function App() {
             <input style={noBorderInput} placeholder="e.g. 5,000" value={totalDebt} onChange={e => setTotalDebt(e.target.value)} />
           </div></div>
 
-        <div><label style={labelStyle}>Down Payment <InfoIcon tip={tooltips.downPayment} /></label>
-          <div style={prefixWrap}><span style={prefixSpan}>$</span>
-            <input style={noBorderInput} placeholder="e.g. 500" value={downPayment} onChange={e => setDownPayment(e.target.value)} />
-          </div></div>
+        <div>
+          <label style={labelStyle}>
+            Down Payment <InfoIcon tip={tooltips.downPayment} />
+            <span
+              onClick={() => setUseDownPayment(p => !p)}
+              style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 5, cursor: "pointer", fontSize: 11, fontWeight: 600, color: useDownPayment ? "#16a34a" : "#aaa", textTransform: "none", letterSpacing: 0 }}
+            >
+              <span style={{ width: 28, height: 15, borderRadius: 10, background: useDownPayment ? "#16a34a" : "#ccc", position: "relative", display: "inline-block", transition: "background 0.2s" }}>
+                <span style={{ position: "absolute", top: 2, left: useDownPayment ? 15 : 2, width: 11, height: 11, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
+              </span>
+              {useDownPayment ? "On" : "Off"}
+            </span>
+          </label>
+          <div style={{ ...prefixWrap, opacity: useDownPayment ? 1 : 0.4, pointerEvents: useDownPayment ? "auto" : "none" }}>
+            <span style={prefixSpan}>$</span>
+            <input style={noBorderInput} placeholder="e.g. 500" value={downPayment} onChange={e => setDownPayment(e.target.value)} disabled={!useDownPayment} />
+          </div>
+        </div>
 
-        <div><label style={labelStyle}>Down Payment Date <InfoIcon tip={tooltips.downPaymentDate} /></label>
-          <div style={{ position: "relative" }}>
-            <input type="date" style={{ ...baseInput, paddingRight: 36 }} value={downPaymentDate} onChange={e => setDownPaymentDate(e.target.value)} />
+        <div>
+          <label style={labelStyle}>Down Payment Date <InfoIcon tip={tooltips.downPaymentDate} /></label>
+          <div style={{ position: "relative", opacity: useDownPayment ? 1 : 0.4, pointerEvents: useDownPayment ? "auto" : "none" }}>
+            <input type="date" style={{ ...baseInput, paddingRight: 36 }} value={downPaymentDate} onChange={e => setDownPaymentDate(e.target.value)} disabled={!useDownPayment} />
             <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 16, pointerEvents: "none" }}>📅</span>
-          </div></div>
+          </div>
+        </div>
 
         <div><label style={labelStyle}>Payment Amount <InfoIcon tip={tooltips.paymentAmount} /></label>
           <div style={prefixWrap}><span style={prefixSpan}>$</span>
@@ -258,8 +279,8 @@ export default function App() {
         <>
           <div style={{ fontFamily: "monospace", fontSize: 13, padding: "14px 18px", background: "#fafafa", border: "1px dashed #bbb", borderRadius: 8, marginBottom: 16, lineHeight: "2.1", color: "#444" }}>
             <div>· Total Debt: <strong>{fmt(totalDebt)}</strong></div>
-            <div>· Down Payment: <strong>{fmt(downPayment)}</strong></div>
-            <div>· Remaining Balance After Down Payment: <strong>{fmt(remaining)}</strong></div>
+            {useDownPayment && <div>· Down Payment: <strong>{fmt(downPayment)}</strong></div>}
+            {useDownPayment && <div>· Remaining Balance After Down Payment: <strong>{fmt(remaining)}</strong></div>}
             <div>· Payment Plan: <strong>{fmt(paymentAmount)}</strong> <strong>{freqLabel(freqWeeks)}</strong></div>
           </div>
 
