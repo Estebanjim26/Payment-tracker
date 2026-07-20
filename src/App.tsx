@@ -185,7 +185,8 @@ export default function App() {
 
   const debtPayments = schedule.filter((r) => r.type === "Payment" || r.type === "Final");
   const payoffRow = schedule.find((r) => r.type === "Final");
-  const remaining = Math.max(0, (parseFloat(totalDebt) || 0) - (useDownPayment ? (parseFloat(downPayment) || 0) : 0));
+  const stripCommas = (v: string) => parseFloat(v.replace(/,/g, "")) || 0;
+  const remaining = Math.max(0, stripCommas(totalDebt) - (useDownPayment ? stripCommas(downPayment) : 0));
 
   const handleCopy = () => {
     const summaryLines = [
@@ -285,11 +286,15 @@ export default function App() {
 
       {schedule.length > 0 && (
         <>
-          <div style={{ fontFamily: "monospace", fontSize: 13, padding: "14px 18px", background: "#fafafa", border: "1px dashed #bbb", borderRadius: 8, marginBottom: 16, lineHeight: "2.1", color: "#444" }}>
+          <div style={{ fontFamily: "monospace", fontSize: 13, padding: "16px 20px", background: "#fafafa", border: "1px dashed #bbb", borderRadius: 8, marginBottom: 16, lineHeight: "2.1", color: "#444" }}>
+            <div style={{ fontFamily: "system-ui", fontSize: 14, fontWeight: 700, color: "#222", marginBottom: 6, letterSpacing: "0.01em" }}>📋 Payment Plan Breakdown</div>
             <div>· Total Debt: <strong>{fmt(totalDebt)}</strong></div>
             {useDownPayment && <div>· Down Payment: <strong>{fmt(downPayment)}</strong></div>}
             {useDownPayment && <div>· Remaining Balance After Down Payment: <strong>{fmt(remaining)}</strong></div>}
             <div>· Payment Plan: <strong>{fmt(paymentAmount)}</strong> <strong>{freqLabel(freqWeeks)}</strong></div>
+            {parseFloat(monthlyBill) > 0 && (
+              <div>· Monthly Bill: <strong>{fmt(monthlyBill)}</strong> <span style={{ color: "#d97706" }}>(billed on the 1st business day of each month)</span></div>
+            )}
           </div>
 
           <div style={{ overflowX: "auto" }}>
