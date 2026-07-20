@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import React from "react";
 
-// ── helpers ────────────────────────────────────────────────────────────────
 const fmt = (n: string | number): string =>
   "$" + Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
@@ -18,9 +17,7 @@ const addDays = (date: Date, days: number): Date => {
 };
 
 const fmtDate = (date: Date | null): string =>
-  date
-    ? date.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" })
-    : "";
+  date ? date.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }) : "";
 
 const freqLabel = (w: string): string => {
   if (w === "monthly") return "Monthly (1st of month)";
@@ -40,7 +37,6 @@ const defaultFeeStart = (): Date => {
   return new Date(now.getFullYear(), now.getMonth() + 1, 1);
 };
 
-// ── static styles ──────────────────────────────────────────────────────────
 const labelStyle: React.CSSProperties = {
   fontSize: 11, fontWeight: 600, color: "#888",
   letterSpacing: "0.05em", textTransform: "uppercase",
@@ -50,8 +46,7 @@ const labelStyle: React.CSSProperties = {
 const baseInput: React.CSSProperties = {
   border: "1px solid #e0e0e0", borderRadius: 6, padding: "7px 10px",
   fontSize: 13, width: "100%", outline: "none", color: "#222",
-  background: "#f8f8f8", boxSizing: "border-box",
-  colorScheme: "light",
+  background: "#f8f8f8", boxSizing: "border-box", colorScheme: "light" as const,
 };
 
 const prefixWrap: React.CSSProperties = {
@@ -67,41 +62,26 @@ const prefixSpan: React.CSSProperties = {
 const noBorderInput: React.CSSProperties = { ...baseInput, border: "none", borderRadius: 0, flex: 1 };
 
 const typeColor: Record<string, string> = { DP: "#6c63ff", Payment: "#222", Final: "#16a34a", Monthly: "#d97706" };
-const typeBg: Record<string, string>    = { DP: "#ede9fe", Payment: "transparent", Final: "#dcfce7", Monthly: "#fef3c7" };
+const typeBg: Record<string, string> = { DP: "#ede9fe", Payment: "transparent", Final: "#dcfce7", Monthly: "#fef3c7" };
 
 const tooltips: Record<string, string> = {
-  totalDebt:        "The full amount owed before any payments.",
-  downPayment:      "An upfront lump sum paid immediately to reduce the balance.",
-  downPaymentDate:  "The date the down payment is made.",
-  paymentAmount:    "The fixed amount paid on each regular payment.",
-  freqWeeks:        "How often payments are made, in weeks. E.g. 1 = weekly, 2 = bi-weekly.",
+  totalDebt: "The full amount owed before any payments.",
+  downPayment: "An upfront lump sum paid immediately to reduce the balance.",
+  downPaymentDate: "The date the down payment is made.",
+  paymentAmount: "The fixed amount paid on each regular payment.",
+  freqWeeks: "How often payments are made. Monthly = 1st of each month.",
   firstPaymentDate: "The date the first regular payment is due.",
-  monthlyBill:      "A recurring monthly charge that does not reduce the debt balance. Billed on the 1st of each month, starting next month.",
+  monthlyBill: "A recurring monthly charge that does not reduce the debt balance. Billed on the 1st of each month, starting next month.",
 };
 
-// ── InfoIcon ───────────────────────────────────────────────────────────────
 function InfoIcon({ tip }: { tip: string }) {
   const [show, setShow] = useState(false);
   return (
-    <span
-      style={{ position: "relative", display: "inline-flex", alignItems: "center" }}
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
-    >
-      <span style={{
-        display: "inline-flex", alignItems: "center", justifyContent: "center",
-        width: 14, height: 14, borderRadius: "50%", background: "#d0d0d0",
-        color: "#555", fontSize: 9, fontWeight: 700, cursor: "default",
-        lineHeight: "1", userSelect: "none",
-      }}>i</span>
+    <span style={{ position: "relative", display: "inline-flex", alignItems: "center" }}
+      onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", background: "#d0d0d0", color: "#555", fontSize: 9, fontWeight: 700, cursor: "default", lineHeight: "1", userSelect: "none" }}>i</span>
       {show && (
-        <span style={{
-          position: "absolute", bottom: "calc(100% + 6px)", left: "50%",
-          transform: "translateX(-50%)", background: "#333", color: "#fff",
-          fontSize: 11, padding: "6px 10px", borderRadius: 6,
-          maxWidth: 220, whiteSpace: "normal", lineHeight: "1.5", zIndex: 100,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.2)", pointerEvents: "none",
-        }}>
+        <span style={{ position: "absolute", bottom: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)", background: "#333", color: "#fff", fontSize: 11, padding: "6px 10px", borderRadius: 6, maxWidth: 220, whiteSpace: "normal", lineHeight: "1.5", zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.2)", pointerEvents: "none" }}>
           {tip}
         </span>
       )}
@@ -109,7 +89,6 @@ function InfoIcon({ tip }: { tip: string }) {
   );
 }
 
-// ── types ──────────────────────────────────────────────────────────────────
 interface Row {
   date: Date;
   type: string;
@@ -120,28 +99,25 @@ interface Row {
   pmtNum?: number;
 }
 
-// ── App ────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [totalDebt,        setTotalDebt]        = useState("");
-  const [downPayment,      setDownPayment]      = useState("");
-  const [downPaymentDate,  setDownPaymentDate]  = useState("");
-  const [paymentAmount,    setPaymentAmount]    = useState("");
-  const [freqWeeks,        setFreqWeeks]        = useState("");
+  const [totalDebt, setTotalDebt] = useState("");
+  const [downPayment, setDownPayment] = useState("");
+  const [downPaymentDate, setDownPaymentDate] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [freqWeeks, setFreqWeeks] = useState("");
   const [firstPaymentDate, setFirstPaymentDate] = useState("");
-  const [monthlyBill,      setMonthlyBill]      = useState("");
-  const [copied,           setCopied]           = useState(false);
+  const [monthlyBill, setMonthlyBill] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const schedule = useMemo((): Row[] => {
-    const total    = parseFloat(totalDebt)    || 0;
-    const dp       = parseFloat(downPayment)  || 0;
-    const dpDate   = parseDate(downPaymentDate);
-    const pmt      = parseFloat(paymentAmount) || 0;
-    const freqDays = (parseInt(freqWeeks) || 1) * 7;
+    const total = parseFloat(totalDebt) || 0;
+    const dp = parseFloat(downPayment) || 0;
+    const dpDate = parseDate(downPaymentDate);
+    const pmt = parseFloat(paymentAmount) || 0;
     const firstPmt = parseDate(firstPaymentDate);
-    const bill     = parseFloat(monthlyBill) || 0;
-
-    const isMonthly = freqWeeks === "monthly";
-    const freqDays = isMonthly ? 0 : (parseInt(freqWeeks) || 1) * 7;
+    const bill = parseFloat(monthlyBill) || 0;
+    const isMonthlyFreq = freqWeeks === "monthly";
+    const freqDays = isMonthlyFreq ? 0 : (parseInt(freqWeeks) || 1) * 7;
 
     if (!total || !dpDate || !firstPmt || !pmt) return [];
 
@@ -151,8 +127,7 @@ export default function App() {
 
     let bal = balAfterDP;
     let pmtDate = new Date(firstPmt);
-    // For monthly, snap to 1st of the month of firstPmt (or next month if past 1st)
-    if (isMonthly) {
+    if (isMonthlyFreq) {
       pmtDate = new Date(firstPmt.getFullYear(), firstPmt.getMonth(), 1);
       if (pmtDate <= dpDate) {
         pmtDate = new Date(pmtDate.getFullYear(), pmtDate.getMonth() + 1, 1);
@@ -165,7 +140,7 @@ export default function App() {
       bal = parseFloat(Math.max(0, bal - actual).toFixed(2));
       rows.push({ date: new Date(pmtDate), type: bal === 0 ? "Final" : "Payment", payment: actual, balance: bal, pmtNum: pmtNum++ });
       if (bal === 0) break;
-      if (isMonthly) {
+      if (isMonthlyFreq) {
         pmtDate = new Date(pmtDate.getFullYear(), pmtDate.getMonth() + 1, 1);
       } else {
         pmtDate = addDays(pmtDate, freqDays);
@@ -196,8 +171,8 @@ export default function App() {
   }, [totalDebt, downPayment, downPaymentDate, paymentAmount, freqWeeks, firstPaymentDate, monthlyBill]);
 
   const debtPayments = schedule.filter((r) => r.type === "Payment" || r.type === "Final");
-  const payoffRow    = schedule.find((r) => r.type === "Final");
-  const remaining    = Math.max(0, (parseFloat(totalDebt) || 0) - (parseFloat(downPayment) || 0));
+  const payoffRow = schedule.find((r) => r.type === "Final");
+  const remaining = Math.max(0, (parseFloat(totalDebt) || 0) - (parseFloat(downPayment) || 0));
 
   const handleCopy = () => {
     const summaryLines = [
@@ -207,7 +182,7 @@ export default function App() {
       `Payment Plan: ${fmt(paymentAmount)} ${freqLabel(freqWeeks)}`,
       "",
     ];
-    const header  = `${pad("#", 4)} | ${pad("Date", 12)} | ${pad("Type", 8)} | ${pad("Payment", 10, true)} | ${pad("Balance", 12, true)}`;
+    const header = `${pad("#", 4)} | ${pad("Date", 12)} | ${pad("Type", 8)} | ${pad("Payment", 10, true)} | ${pad("Balance", 12, true)}`;
     const divider = "-".repeat(header.length);
     const tableRows = schedule.map((r) => {
       const num = r.isDP ? "—" : r.isFee ? "" : String(r.pmtNum);
@@ -215,7 +190,6 @@ export default function App() {
     });
     const footer = ["", `Total Payments: ${debtPayments.length}`, `Estimated Payoff Date: ${payoffRow ? fmtDate(payoffRow.date) : "—"}`];
     const text = [...summaryLines, header, divider, ...tableRows, ...footer].join("\n");
-
     navigator.clipboard.writeText(text)
       .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })
       .catch(() => {
@@ -227,6 +201,11 @@ export default function App() {
       });
   };
 
+  const handleReset = () => {
+    setTotalDebt(""); setDownPayment(""); setDownPaymentDate("");
+    setPaymentAmount(""); setFreqWeeks(""); setFirstPaymentDate(""); setMonthlyBill("");
+  };
+
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", maxWidth: 960, margin: "0 auto", padding: "40px 48px", color: "#222", minWidth: 700 }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>💳 Payment Schedule Tracker</h1>
@@ -235,7 +214,7 @@ export default function App() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28, padding: 24, background: "#fafafa", border: "1px dashed #d0d0d0", borderRadius: 10 }}>
         <div><label style={labelStyle}>Total Debt <InfoIcon tip={tooltips.totalDebt} /></label>
           <div style={prefixWrap}><span style={prefixSpan}>$</span>
-            <input style={noBorderInput} placeholder="e.g. 5000" value={totalDebt} onChange={e => setTotalDebt(e.target.value)} />
+            <input style={noBorderInput} placeholder="e.g. 5,000" value={totalDebt} onChange={e => setTotalDebt(e.target.value)} />
           </div></div>
 
         <div><label style={labelStyle}>Down Payment <InfoIcon tip={tooltips.downPayment} /></label>
@@ -284,8 +263,6 @@ export default function App() {
             <div>· Payment Plan: <strong>{fmt(paymentAmount)}</strong> <strong>{freqLabel(freqWeeks)}</strong></div>
           </div>
 
-
-
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
@@ -311,14 +288,24 @@ export default function App() {
             </table>
           </div>
 
-          <div style={{ marginTop: 20, padding: "14px 18px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, display: "flex", gap: 40, flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontSize: 11, color: "#666", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>Total Payments</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: "#15803d" }}>{debtPayments.length}</div>
+          <div style={{ marginTop: 20, padding: "14px 18px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+            <div style={{ display: "flex", gap: 40 }}>
+              <div>
+                <div style={{ fontSize: 11, color: "#666", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>Total Payments</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: "#15803d" }}>{debtPayments.length}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: "#666", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>Estimated Payoff Date</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: "#15803d" }}>{payoffRow ? fmtDate(payoffRow.date) : "—"}</div>
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: 11, color: "#666", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>Estimated Payoff Date</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: "#15803d" }}>{payoffRow ? fmtDate(payoffRow.date) : "—"}</div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={handleReset} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 7, border: "1px solid #fca5a5", background: "#fff", color: "#dc2626", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                🗑️ Reset All
+              </button>
+              <button onClick={handleCopy} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 7, border: "1px solid #d0d0d0", background: copied ? "#dcfce7" : "#fff", color: copied ? "#16a34a" : "#444", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "background 0.2s, color 0.2s" }}>
+                {copied ? "✓ Copied!" : "📋 Copy Schedule"}
+              </button>
             </div>
           </div>
         </>
