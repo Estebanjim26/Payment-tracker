@@ -27,10 +27,7 @@ const freqLabel = (w: string): string => {
   return `Every ${n} Weeks`;
 };
 
-const pad = (s: string | number | null | undefined, w: number, right = false): string => {
-  const str = String(s ?? "");
-  return right ? str.padStart(w) : str.padEnd(w);
-};
+
 
 const firstBusinessDay = (year: number, month: number): Date => {
   const d = new Date(year, month, 1);
@@ -188,21 +185,33 @@ export default function App() {
   const stripCommas = (v: string) => parseFloat(v.replace(/,/g, "")) || 0;
   const remaining = Math.max(0, stripCommas(totalDebt) - (useDownPayment ? stripCommas(downPayment) : 0));
 
+  const pad = (s: string | number | null | undefined, w: number, right = false): string => {
+    const str = String(s ?? "");
+    return right ? str.padStart(w) : str.padEnd(w);
+  };
+
   const handleCopy = () => {
     const summaryLines = [
-      `Total Debt: ${fmt(totalDebt)}`,
-      `Down Payment: ${fmt(downPayment)}`,
-      `Remaining Balance After Down Payment: ${fmt(remaining)}`,
-      `Payment Plan: ${fmt(paymentAmount)} ${freqLabel(freqWeeks)}`,
-      "",
+      `Payment Plan Breakdown`,
+      ``,
+      `· Total Debt: ${fmt(totalDebt)}`,
+      ...(useDownPayment ? [`· Down Payment: ${fmt(downPayment)}`] : []),
+      ...(useDownPayment ? [`· Remaining Balance After Down Payment: ${fmt(remaining)}`] : []),
+      `· Payment Plan: ${fmt(paymentAmount)} ${freqLabel(freqWeeks)}`,
+      ...(parseFloat(monthlyBill) > 0 ? [`· Monthly Bill: ${fmt(monthlyBill)} (billed on the 1st business day of each month)`] : []),
+      ``,
     ];
-    const header = `${pad("#", 4)} | ${pad("Date", 12)} | ${pad("Type", 8)} | ${pad("Payment", 10, true)} | ${pad("Balance", 12, true)}`;
+    const header  = `${pad("#", 4)} | ${pad("Date", 12)} | ${pad("Type", 8)} | ${pad("Payment", 10, true)} | ${pad("Balance", 12, true)}`;
     const divider = "-".repeat(header.length);
     const tableRows = schedule.map((r) => {
       const num = r.isDP ? "—" : r.isFee ? "" : String(r.pmtNum);
       return `${pad(num, 4)} | ${pad(fmtDate(r.date), 12)} | ${pad(r.type, 8)} | ${pad(fmt(r.payment), 10, true)} | ${pad(fmt(r.balance), 12, true)}`;
     });
-    const footer = ["", `Total Payments: ${debtPayments.length}`, `Estimated Payoff Date: ${payoffRow ? fmtDate(payoffRow.date) : "—"}`];
+    const footer = [
+      ``,
+      `Total Payments: ${debtPayments.length}`,
+      `Estimated Payoff Date: ${payoffRow ? fmtDate(payoffRow.date) : "—"}`,
+    ];
     const text = [...summaryLines, header, divider, ...tableRows, ...footer].join("\n");
     navigator.clipboard.writeText(text)
       .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })
