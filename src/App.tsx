@@ -27,10 +27,7 @@ const freqLabel = (w: string): string => {
   return `Every ${n} Weeks`;
 };
 
-const pad = (s: string | number | null | undefined, w: number, right = false): string => {
-  const str = String(s ?? "");
-  return right ? str.padStart(w) : str.padEnd(w);
-};
+
 
 const firstBusinessDay = (year: number, month: number): Date => {
   const d = new Date(year, month, 1);
@@ -214,7 +211,7 @@ export default function App() {
           </tr>
         </thead>
         <tbody>
-          ${schedule.map((r, i) => {
+          ${schedule.map((r) => {
             const dateKey = r.date.toDateString();
             const firstIdx = schedule.findIndex(s => s.date.toDateString() === dateKey);
             const uniqueDates = [...new Set(schedule.slice(0, firstIdx).map(s => s.date.toDateString()))];
