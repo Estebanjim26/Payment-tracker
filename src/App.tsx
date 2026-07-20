@@ -32,9 +32,17 @@ const pad = (s: string | number | null | undefined, w: number, right = false): s
   return right ? str.padStart(w) : str.padEnd(w);
 };
 
+const firstBusinessDay = (year: number, month: number): Date => {
+  const d = new Date(year, month, 1);
+  const day = d.getDay(); // 0=Sun, 6=Sat
+  if (day === 0) d.setDate(2); // Sun → Mon
+  if (day === 6) d.setDate(3); // Sat → Mon
+  return d;
+};
+
 const defaultFeeStart = (): Date => {
   const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  return firstBusinessDay(now.getFullYear(), now.getMonth() + 1);
 };
 
 const labelStyle: React.CSSProperties = {
@@ -132,10 +140,10 @@ export default function App() {
     let bal = balAfterDP;
     let pmtDate = new Date(firstPmt);
     if (isMonthlyFreq) {
-      pmtDate = new Date(firstPmt.getFullYear(), firstPmt.getMonth(), 1);
+      pmtDate = firstBusinessDay(firstPmt.getFullYear(), firstPmt.getMonth());
       const refDate = (useDownPayment && dpDate) ? dpDate : new Date(0);
       if (pmtDate <= refDate) {
-        pmtDate = new Date(pmtDate.getFullYear(), pmtDate.getMonth() + 1, 1);
+        pmtDate = firstBusinessDay(pmtDate.getFullYear(), pmtDate.getMonth() + 1);
       }
     }
     let pmtNum = 1;
@@ -146,7 +154,7 @@ export default function App() {
       rows.push({ date: new Date(pmtDate), type: bal === 0 ? "Final" : "Payment", payment: actual, balance: bal, pmtNum: pmtNum++ });
       if (bal === 0) break;
       if (isMonthlyFreq) {
-        pmtDate = new Date(pmtDate.getFullYear(), pmtDate.getMonth() + 1, 1);
+        pmtDate = firstBusinessDay(pmtDate.getFullYear(), pmtDate.getMonth() + 1);
       } else {
         pmtDate = addDays(pmtDate, freqDays);
       }
@@ -157,7 +165,7 @@ export default function App() {
       let feeDate = defaultFeeStart();
       while (feeDate <= endDate) {
         rows.push({ date: new Date(feeDate), type: "Monthly", payment: bill, balance: 0, isFee: true });
-        feeDate = new Date(feeDate.getFullYear(), feeDate.getMonth() + 1, 1);
+        feeDate = firstBusinessDay(feeDate.getFullYear(), feeDate.getMonth() + 1);
       }
     }
 
