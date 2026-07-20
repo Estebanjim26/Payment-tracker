@@ -23,10 +23,10 @@ const fmtDate = (date: Date | null): string =>
     : "";
 
 const freqLabel = (w: string): string => {
+  if (w === "monthly") return "Monthly (1st of month)";
   const n = parseInt(w) || 1;
   if (n === 1) return "Weekly";
   if (n === 2) return "Bi-Weekly";
-  if (n === 4) return "Monthly";
   return `Every ${n} Weeks`;
 };
 
@@ -140,6 +140,9 @@ export default function App() {
     const firstPmt = parseDate(firstPaymentDate);
     const bill     = parseFloat(monthlyBill) || 0;
 
+    const isMonthly = freqWeeks === "monthly";
+    const freqDays = isMonthly ? 0 : (parseInt(freqWeeks) || 1) * 7;
+
     if (!total || !dpDate || !firstPmt || !pmt) return [];
 
     const rows: Row[] = [];
@@ -148,6 +151,13 @@ export default function App() {
 
     let bal = balAfterDP;
     let pmtDate = new Date(firstPmt);
+    // For monthly, snap to 1st of the month of firstPmt (or next month if past 1st)
+    if (isMonthly) {
+      pmtDate = new Date(firstPmt.getFullYear(), firstPmt.getMonth(), 1);
+      if (pmtDate <= dpDate) {
+        pmtDate = new Date(pmtDate.getFullYear(), pmtDate.getMonth() + 1, 1);
+      }
+    }
     let pmtNum = 1;
 
     while (bal > 0 && pmtNum <= 1000) {
@@ -155,7 +165,11 @@ export default function App() {
       bal = parseFloat(Math.max(0, bal - actual).toFixed(2));
       rows.push({ date: new Date(pmtDate), type: bal === 0 ? "Final" : "Payment", payment: actual, balance: bal, pmtNum: pmtNum++ });
       if (bal === 0) break;
-      pmtDate = addDays(pmtDate, freqDays);
+      if (isMonthly) {
+        pmtDate = new Date(pmtDate.getFullYear(), pmtDate.getMonth() + 1, 1);
+      } else {
+        pmtDate = addDays(pmtDate, freqDays);
+      }
     }
 
     if (bill > 0) {
@@ -215,7 +229,7 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", maxWidth: 960, margin: "0 auto", padding: "40px 48px", color: "#222", minWidth: 700 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>💳 Payment Scheduler</h1>
+      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>💳 Payment Schedule Tracker</h1>
       <p style={{ fontSize: 13, color: "#888", marginBottom: 24 }}>Fill in your details to generate a full payment schedule.</p>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28, padding: 24, background: "#fafafa", border: "1px dashed #d0d0d0", borderRadius: 10 }}>
@@ -240,8 +254,14 @@ export default function App() {
             <input style={noBorderInput} placeholder="e.g. 200" value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} />
           </div></div>
 
-        <div><label style={labelStyle}>Frequency (weeks) <InfoIcon tip={tooltips.freqWeeks} /></label>
-          <input style={baseInput} placeholder="e.g. 2" value={freqWeeks} onChange={e => setFreqWeeks(e.target.value)} /></div>
+        <div><label style={labelStyle}>Frequency <InfoIcon tip={tooltips.freqWeeks} /></label>
+          <select style={{ ...baseInput, cursor: "pointer" }} value={freqWeeks} onChange={e => setFreqWeeks(e.target.value)}>
+            <option value="">-- Select --</option>
+            <option value="1">Weekly</option>
+            <option value="2">Bi-Weekly</option>
+            <option value="3">Every 3 Weeks</option>
+            <option value="monthly">Monthly (1st of month)</option>
+          </select></div>
 
         <div><label style={labelStyle}>First Payment Date <InfoIcon tip={tooltips.firstPaymentDate} /></label>
           <div style={{ position: "relative" }}>
@@ -264,14 +284,7 @@ export default function App() {
             <div>· Payment Plan: <strong>{fmt(paymentAmount)}</strong> <strong>{freqLabel(freqWeeks)}</strong></div>
           </div>
 
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-            <button onClick={() => { setTotalDebt(""); setDownPayment(""); setDownPaymentDate(""); setPaymentAmount(""); setFreqWeeks(""); setFirstPaymentDate(""); setMonthlyBill(""); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 18px", borderRadius: 7, border: "1px solid #fca5a5", background: "#fff", color: "#dc2626", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-              🗑️ Reset All
-            </button>
-            <button onClick={handleCopy} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 18px", borderRadius: 7, border: "1px solid #d0d0d0", background: copied ? "#dcfce7" : "#fff", color: copied ? "#16a34a" : "#444", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "background 0.2s, color 0.2s" }}>
-              {copied ? "✓ Copied!" : "📋 Copy Schedule"}
-            </button>
-          </div>
+
 
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
