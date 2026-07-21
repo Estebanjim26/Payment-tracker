@@ -108,6 +108,7 @@ export default function App() {
   const [totalDebt, setTotalDebt] = useState("");
   const [useDownPayment, setUseDownPayment] = useState(true);
   const [downPayment, setDownPayment] = useState("");
+  const [downPaymentPct, setDownPaymentPct] = useState("");
   const [downPaymentDate, setDownPaymentDate] = useState("");
   const [paymentAmount, setPaymentAmount] = useState("");
   const [freqWeeks, setFreqWeeks] = useState("");
@@ -225,7 +226,7 @@ export default function App() {
   };
 
   const handleReset = () => {
-    setTotalDebt(""); setUseDownPayment(true); setDownPayment(""); setDownPaymentDate("");
+    setTotalDebt(""); setUseDownPayment(true); setDownPayment(""); setDownPaymentPct(""); setDownPaymentDate("");
     setPaymentAmount(""); setFreqWeeks(""); setFirstPaymentDate(""); setMonthlyBill("");
   };
 
@@ -253,9 +254,37 @@ export default function App() {
               {useDownPayment ? "On" : "Off"}
             </span>
           </label>
-          <div style={{ ...prefixWrap, opacity: useDownPayment ? 1 : 0.4, pointerEvents: useDownPayment ? "auto" : "none" }}>
-            <span style={prefixSpan}>$</span>
-            <input style={noBorderInput} placeholder="e.g. 500" value={downPayment} onChange={e => setDownPayment(e.target.value)} disabled={!useDownPayment} />
+          <div style={{ display: "flex", gap: 6, opacity: useDownPayment ? 1 : 0.4, pointerEvents: useDownPayment ? "auto" : "none" }}>
+            <div style={{ ...prefixWrap, flex: 1 }}>
+              <span style={prefixSpan}>$</span>
+              <input
+                style={noBorderInput}
+                placeholder="e.g. 500"
+                value={downPayment}
+                disabled={!useDownPayment}
+                onChange={e => {
+                  setDownPayment(e.target.value);
+                  const total = parseFloat(totalDebt.replace(/,/g, "")) || 0;
+                  const amt = parseFloat(e.target.value.replace(/,/g, "")) || 0;
+                  setDownPaymentPct(total > 0 ? ((amt / total) * 100).toFixed(1) : "");
+                }}
+              />
+            </div>
+            <div style={{ ...prefixWrap, width: 90 }}>
+              <input
+                style={{ ...noBorderInput, textAlign: "right" }}
+                placeholder="e.g. 50"
+                value={downPaymentPct}
+                disabled={!useDownPayment}
+                onChange={e => {
+                  setDownPaymentPct(e.target.value);
+                  const total = parseFloat(totalDebt.replace(/,/g, "")) || 0;
+                  const pct = parseFloat(e.target.value) || 0;
+                  setDownPayment(total > 0 ? ((pct / 100) * total).toFixed(2) : "");
+                }}
+              />
+              <span style={{ ...prefixSpan, borderLeft: "1px solid #e0e0e0", borderRight: "none" }}>%</span>
+            </div>
           </div>
         </div>
 
