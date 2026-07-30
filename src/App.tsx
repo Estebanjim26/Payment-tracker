@@ -307,7 +307,8 @@ export default function App() {
             <option value="1">Weekly</option>
             <option value="2">Bi-Weekly</option>
             <option value="3">Every 3 Weeks</option>
-            <option value="monthly">Monthly (1st of month)</option>
+            <option value="4">Every 4 Weeks</option>
+            <option value="monthly">Monthly (1st business day)</option>
           </select></div>
 
         <div><label style={labelStyle}>First Payment Date <InfoIcon tip={tooltips.firstPaymentDate} /></label>
