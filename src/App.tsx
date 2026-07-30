@@ -263,10 +263,12 @@ export default function App() {
                 value={downPayment}
                 disabled={!useDownPayment}
                 onChange={e => {
-                  setDownPayment(e.target.value);
+                  const raw = e.target.value;
+                  setDownPayment(raw);
                   const total = parseFloat(totalDebt.replace(/,/g, "")) || 0;
-                  const amt = parseFloat(e.target.value.replace(/,/g, "")) || 0;
-                  setDownPaymentPct(total > 0 ? ((amt / total) * 100).toFixed(1) : "");
+                  const amt = parseFloat(raw.replace(/,/g, "")) || 0;
+                  if (total > 0 && amt > 0) setDownPaymentPct(((amt / total) * 100).toFixed(1));
+                  else setDownPaymentPct("");
                 }}
               />
             </div>
@@ -277,10 +279,12 @@ export default function App() {
                 value={downPaymentPct}
                 disabled={!useDownPayment}
                 onChange={e => {
-                  setDownPaymentPct(e.target.value);
+                  const raw = e.target.value;
+                  setDownPaymentPct(raw);
                   const total = parseFloat(totalDebt.replace(/,/g, "")) || 0;
-                  const pct = parseFloat(e.target.value) || 0;
-                  setDownPayment(total > 0 ? ((pct / 100) * total).toFixed(2) : "");
+                  const pct = parseFloat(raw) || 0;
+                  if (total > 0 && pct > 0) setDownPayment(((pct / 100) * total).toFixed(2));
+                  else setDownPayment("");
                 }}
               />
               <span style={{ ...prefixSpan, borderLeft: "1px solid #e0e0e0", borderRight: "none" }}>%</span>
