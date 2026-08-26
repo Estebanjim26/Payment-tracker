@@ -147,7 +147,7 @@ export default function App() {
     const isMonthlyFreq = freqWeeks === "monthly";
     const freqDays = isMonthlyFreq ? 0 : (parseInt(freqWeeks) || 1) * 7;
 
-    if (!total || !firstPmt || !pmt || pmt >= total) return [];
+    if (!total || !firstPmt || !pmt) return [];
     if (useDownPayment && dp > 0 && !parseDate(downPaymentDate)) return [];
 
     const rows: Row[] = [];
