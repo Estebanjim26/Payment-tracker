@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import React from "react";
 
 const fmt = (n: string | number): string =>
@@ -110,6 +110,27 @@ export default function App() {
   const [downPayment, setDownPayment] = useState("");
   const [downPaymentPct, setDownPaymentPct] = useState("");
   const [downPaymentDate, setDownPaymentDate] = useState("");
+  const updatingDP = useRef(false);
+
+  const handleDPAmountChange = useCallback((raw: string) => {
+    if (updatingDP.current) return;
+    updatingDP.current = true;
+    setDownPayment(raw);
+    const total = parseFloat(totalDebt.replace(/,/g, "")) || 0;
+    const amt = parseFloat(raw.replace(/,/g, "")) || 0;
+    setDownPaymentPct(total > 0 && amt > 0 ? ((amt / total) * 100).toFixed(1) : "");
+    updatingDP.current = false;
+  }, [totalDebt]);
+
+  const handleDPPctChange = useCallback((raw: string) => {
+    if (updatingDP.current) return;
+    updatingDP.current = true;
+    setDownPaymentPct(raw);
+    const total = parseFloat(totalDebt.replace(/,/g, "")) || 0;
+    const pct = parseFloat(raw) || 0;
+    setDownPayment(total > 0 && pct > 0 ? ((pct / 100) * total).toFixed(2) : "");
+    updatingDP.current = false;
+  }, [totalDebt]);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [freqWeeks, setFreqWeeks] = useState("");
   const [firstPaymentDate, setFirstPaymentDate] = useState("");
@@ -183,8 +204,9 @@ export default function App() {
 
   const debtPayments = schedule.filter((r) => r.type === "Payment" || r.type === "Final");
   const payoffRow = schedule.find((r) => r.type === "Final");
+  const cleanNum = (v: string) => parseFloat(v.replace(/,/g, "")) || 0;
   const stripCommas = (v: string) => parseFloat(v.replace(/,/g, "")) || 0;
-  const remaining = Math.max(0, stripCommas(totalDebt) - (useDownPayment ? stripCommas(downPayment) : 0));
+  const remaining = Math.max(0, cleanNum(totalDebt) - (useDownPayment ? cleanNum(downPayment) : 0));
 
   const pad = (s: string | number | null | undefined, w: number, right = false): string => {
     const str = String(s ?? "");
@@ -195,11 +217,11 @@ export default function App() {
     const summaryLines = [
       `Payment Plan Breakdown`,
       ``,
-      `· Total Debt: ${fmt(totalDebt)}`,
-      ...(useDownPayment ? [`· Down Payment: ${fmt(downPayment)}`] : []),
+      `· Total Debt: ${fmt(cleanNum(totalDebt))}`,
+      ...(useDownPayment ? [`· Down Payment: ${fmt(cleanNum(downPayment))}`] : []),
       ...(useDownPayment ? [`· Remaining Balance After Down Payment: ${fmt(remaining)}`] : []),
-      `· Payment Plan: ${fmt(paymentAmount)} ${freqLabel(freqWeeks)}`,
-      ...(parseFloat(monthlyBill) > 0 ? [`· Monthly Bill: ${fmt(monthlyBill)} (billed on the 1st business day of each month)`] : []),
+      `· Payment Plan: ${fmt(cleanNum(paymentAmount))} ${freqLabel(freqWeeks)}`,
+      ...(cleanNum(monthlyBill) > 0 ? [`· Monthly Bill: ${fmt(cleanNum(monthlyBill))} (billed on the 1st business day of each month)`] : []),
       ``,
     ];
     const header  = `${pad("#", 4)} | ${pad("Date", 12)} | ${pad("Type", 8)} | ${pad("Payment", 10, true)} | ${pad("Balance", 12, true)}`;
@@ -262,14 +284,7 @@ export default function App() {
                 placeholder="e.g. 500"
                 value={downPayment}
                 disabled={!useDownPayment}
-                onChange={e => {
-                  const raw = e.target.value;
-                  setDownPayment(raw);
-                  const total = parseFloat(totalDebt.replace(/,/g, "")) || 0;
-                  const amt = parseFloat(raw.replace(/,/g, "")) || 0;
-                  if (total > 0 && amt > 0) setDownPaymentPct(((amt / total) * 100).toFixed(1));
-                  else setDownPaymentPct("");
-                }}
+                onChange={e => handleDPAmountChange(e.target.value)}
               />
             </div>
             <div style={{ ...prefixWrap, width: 90 }}>
@@ -278,14 +293,7 @@ export default function App() {
                 placeholder="e.g. 50"
                 value={downPaymentPct}
                 disabled={!useDownPayment}
-                onChange={e => {
-                  const raw = e.target.value;
-                  setDownPaymentPct(raw);
-                  const total = parseFloat(totalDebt.replace(/,/g, "")) || 0;
-                  const pct = parseFloat(raw) || 0;
-                  if (total > 0 && pct > 0) setDownPayment(((pct / 100) * total).toFixed(2));
-                  else setDownPayment("");
-                }}
+                onChange={e => handleDPPctChange(e.target.value)}
               />
               <span style={{ ...prefixSpan, borderLeft: "1px solid #e0e0e0", borderRight: "none" }}>%</span>
             </div>
@@ -331,12 +339,12 @@ export default function App() {
         <>
           <div style={{ fontFamily: "monospace", fontSize: 13, padding: "16px 20px", background: "#fafafa", border: "1px dashed #bbb", borderRadius: 8, marginBottom: 16, lineHeight: "2.1", color: "#444" }}>
             <div style={{ fontFamily: "system-ui", fontSize: 14, fontWeight: 700, color: "#222", marginBottom: 6, letterSpacing: "0.01em" }}>📋 Payment Plan Breakdown</div>
-            <div>· Total Debt: <strong>{fmt(totalDebt)}</strong></div>
-            {useDownPayment && <div>· Down Payment: <strong>{fmt(downPayment)}</strong></div>}
+            <div>· Total Debt: <strong>{fmt(cleanNum(totalDebt))}</strong></div>
+            {useDownPayment && <div>· Down Payment: <strong>{fmt(cleanNum(downPayment))}</strong></div>}
             {useDownPayment && <div>· Remaining Balance After Down Payment: <strong>{fmt(remaining)}</strong></div>}
-            <div>· Payment Plan: <strong>{fmt(paymentAmount)}</strong> <strong>{freqLabel(freqWeeks)}</strong></div>
-            {parseFloat(monthlyBill) > 0 && (
-              <div>· Monthly Bill: <strong>{fmt(monthlyBill)}</strong> <span style={{ color: "#d97706" }}>(billed on the 1st business day of each month)</span></div>
+            <div>· Payment Plan: <strong>{fmt(cleanNum(paymentAmount))}</strong> <strong>{freqLabel(freqWeeks)}</strong></div>
+            {cleanNum(monthlyBill) > 0 && (
+              <div>· Monthly Bill: <strong>{fmt(cleanNum(monthlyBill))}</strong> <span style={{ color: "#d97706" }}>(billed on the 1st business day of each month)</span></div>
             )}
           </div>
 
