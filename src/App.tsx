@@ -205,7 +205,6 @@ export default function App() {
   const debtPayments = schedule.filter((r) => r.type === "Payment" || r.type === "Final");
   const payoffRow = schedule.find((r) => r.type === "Final");
   const cleanNum = (v: string) => parseFloat(v.replace(/,/g, "")) || 0;
-  const stripCommas = (v: string) => parseFloat(v.replace(/,/g, "")) || 0;
   const remaining = Math.max(0, cleanNum(totalDebt) - (useDownPayment ? cleanNum(downPayment) : 0));
 
   const pad = (s: string | number | null | undefined, w: number, right = false): string => {
