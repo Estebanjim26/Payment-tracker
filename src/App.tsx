@@ -112,25 +112,28 @@ export default function App() {
   const [downPaymentDate, setDownPaymentDate] = useState("");
   const updatingDP = useRef(false);
 
+  const totalDebtRef = useRef(totalDebt);
+  totalDebtRef.current = totalDebt;
+
   const handleDPAmountChange = useCallback((raw: string) => {
     if (updatingDP.current) return;
     updatingDP.current = true;
     setDownPayment(raw);
-    const total = parseFloat(totalDebt.replace(/,/g, "")) || 0;
-    const amt = parseFloat(raw.replace(/,/g, "")) || 0;
+    const total = parseFloat(totalDebtRef.current.replace(/,/g, "").trim()) || 0;
+    const amt = parseFloat(raw.replace(/,/g, "").trim()) || 0;
     setDownPaymentPct(total > 0 && amt > 0 ? ((amt / total) * 100).toFixed(1) : "");
     updatingDP.current = false;
-  }, [totalDebt]);
+  }, []);
 
   const handleDPPctChange = useCallback((raw: string) => {
     if (updatingDP.current) return;
     updatingDP.current = true;
     setDownPaymentPct(raw);
-    const total = parseFloat(totalDebt.replace(/,/g, "")) || 0;
-    const pct = parseFloat(raw) || 0;
+    const total = parseFloat(totalDebtRef.current.replace(/,/g, "").trim()) || 0;
+    const pct = parseFloat(raw.trim()) || 0;
     setDownPayment(total > 0 && pct > 0 ? ((pct / 100) * total).toFixed(2) : "");
     updatingDP.current = false;
-  }, [totalDebt]);
+  }, []);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [freqWeeks, setFreqWeeks] = useState("");
   const [firstPaymentDate, setFirstPaymentDate] = useState("");
